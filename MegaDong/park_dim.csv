@@ -1,10 +1,3 @@
-Section,Distance,Distance - Field,Height,Height - Field
-1,355,Wrigley,37,Fenway
-2,371,PNC Park,37,Fenway
-3,406,Coors Field,37,Fenway
-4,428,Comerica Park,37,Fenway
-5,420,Comerica Park,25,Chase
-6,428,Comerica Park,25,Chase
-7,412,Oracle Park,23,Target
-8,385,Kauffman,23,Target
-9,353,Wrigley,25,Oracle Park
+version https://git-lfs.github.com/spec/v1
+oid sha256:19afdc9a98a831fa30debe79de72eef61dfda282716b78f6cdf62e860e5134fd
+size 302
