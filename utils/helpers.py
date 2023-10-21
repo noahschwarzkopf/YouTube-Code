@@ -266,7 +266,48 @@ def num_homers(launch_speed_fts, launch_angle_rads, plate_z, hit_distance_sc, sp
 
     return count
 
-def is_home_run_new_team(launch_speed_fts, launch_angle_rads, plate_z, hit_distance_sc, spray_angle, team, new_team, g=-32.174):
+def is_home_run_new_team(launch_speed_fts, launch_angle_rads, plate_z, hit_distance_sc, spray_angle, team, new_team, event, g=-32.174):
+
+    if team == new_team:
+        if event == 'home_run':
+            return 1
+        else:
+            return 0
+
+    else:
+        alt_team = (alt[team] * -1)
+
+        alt_new_team = (alt[new_team] * -1)
+
+        alt_dist_change = (alt_new_team - alt_team) + 1
+
+        hit_distance_sc = hit_distance_sc * alt_dist_change
+
+        wall_distance, fence_height = home_run_needed_metrics(spray_angle, new_team)
+
+        # calculate launch_speed_x and launch_speed_y
+        launch_speed_x = launch_speed_fts * np.cos(launch_angle_rads)
+        launch_speed_y = launch_speed_fts * np.sin(launch_angle_rads)
+        
+        # calculate total_time
+        total_time = -(launch_speed_y + np.sqrt(launch_speed_y**2 + (2*g * plate_z))) / g
+        
+        # calculate acceleration_x
+        acceleration_x = (-2*launch_speed_x / total_time) + (2*hit_distance_sc/total_time**2)
+        
+        # calculate time_wall
+        time_wall = (-launch_speed_x + np.sqrt(launch_speed_x**2 + 2*acceleration_x*wall_distance))/acceleration_x
+        
+        # calculate height_at_wall
+        height_at_wall = (launch_speed_y * time_wall) + (.5*g*(time_wall**2))
+        
+        # check if the ball clears the wall
+        if height_at_wall > fence_height:
+            return 1
+        return 0
+    
+
+def is_home_run_new_team2(launch_speed_fts, launch_angle_rads, plate_z, hit_distance_sc, spray_angle, team, new_team, g=-32.174):
 
     if team != new_team:
         alt_team = (alt[team] * -1)
