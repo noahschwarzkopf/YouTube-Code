@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Top 500 True Home Run Seasons</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+</head>
+
+<style>
+    body {
+        background-color: rgba(0, 1, 2, 0.4);
+    }
+</style>
+
+<body>
+
+    <script>
+        margin = {top: 80, right: 100, bottom: 60, left: 100};
+        const width = 1200 - margin.left - margin.right;
+        const height = 650 - margin.top - margin.bottom;
+
+        const svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class","graph-svg-component")
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        d3.csv("../data/hr_stad.csv").then(function(data) {
+            const x = d3.scaleBand()
+                .domain(data.map(d => d.Team))
+                .rangeRound([0, width])
+                .paddingInner(0.1);
+
+            const y = d3.scaleLinear()
+                .domain([d3.min(data, d => +d.HR_Count - 62), d3.max(data, d => +d.HR_Count - 62)])
+                .nice()
+                .rangeRound([height, 0]);
+
+            const strokeWidth = 3;
+
+            const numBars = data.length
+
+            const baseline = y(62);  // y-coordinate for the baseline
+
+            svg.append("g")
+                .selectAll("rect")
+                .data(data)
+                .enter().append("rect")
+                .attr("x", d => x(d.Team))
+                .attr("y", d => y(Math.max(0, +d.HR_Count - 62)))
+                .attr("width", x.bandwidth())
+                .attr("height", d => Math.abs(y(+d.HR_Count - 62) - y(0)))
+                .attr("fill", "grey")
+                .transition()
+                .duration(2000)
+                .delay(1000)
+                .attr("fill", (d, i) => i === 5 ? "rgb(246,177,57)" : "grey")
+                .transition()
+                .duration(2000)
+                .delay(1000)
+                .attr("fill", (d, i) => i === 29 ? "rgb(246,177,57)" : "grey")
+                .transition()
+                .duration(2000)
+                .delay(1000)
+                .attr("fill", (d, i) => i === 0 ? "rgb(246,177,57)" : "grey");
+
+
+            svg.append("g")
+                .selectAll("text")
+                .data(data)
+                .enter().append("text")
+                .attr("x", d => x(d.Team) + x.bandwidth()/2)  // Center the text over each bar
+                .attr("y", d => y(d.HR_Count) - 7)  // 5 units above the
+                .text(d => d.HR_Count)
+                .attr("text-anchor", "middle")  // Center the text
+                .attr("fill", "black") 
+                .attr("font-size","12")
+                .attr("opacity",1);
+                // .transition()
+                // .duration(1000)
+                // .delay((d, i) => (numBars - 1 - i)* 500)
+                // .attr("opacity",1)
+
+            svg.append("text")
+                .attr("x",(width-60)/2)
+                .attr("y",-20)
+                .attr("text-anchor","middle")
+                .style("font-size","20px")
+                .style("font-family","Roboto")
+                .text("Judge 2022 Home Runs By Team");
+            
+            svg.append("text")
+                .attr("x",-(height-margin.top)/3.3)
+                .attr("y",-margin.left/2)
+                .attr("text-anchor","end")
+                .attr("transform", "rotate(-90)")
+                .style("font-size","15px")
+                .style("font-family","Roboto")
+                .text("Total Home Runs");
+
+            svg.append("g")
+                .attr("class", "axis")
+                .call(d3.axisLeft(y).ticks(null, "s"));
+
+            svg.append("g")
+                .attr("class","axis")
+                .attr("transform",`translate(0, 185)`)
+                .call(d3.axisBottom(x).tickSize(0).tickFormat(""));
+
+            const logoHeight = 20
+            const logoWidth = 20
+
+            svg.append("g")
+                .selectAll("image")
+                .data(data)
+                .enter().append("image")
+                .attr("x", d => x(d.Team) + x.bandwidth() / 2 - logoWidth / 2)  // Center the logo over each bar
+                //.attr("y", d => y(0) + (y(+d.HR_Count - 62) - y(0)) / 2 - logoHeight / 2)  // Center the logo over each bar vertically
+                .attr("y", 175)
+                .attr("width", logoWidth)
+                .attr("height", logoHeight)
+                .attr("xlink:href", d => `logos/${d.Team}.png`);  // Adjust the URL path to match your setup
+  
+
+        });
+
+    </script>
+
+</body>

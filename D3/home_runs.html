@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Baseball Field with D3.js</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        /* Style for baseball field grass */
+        path.grass {
+            fill: #d6fbb2; /* Grass color */
+        }
+
+        /* Style for baseball field outline */
+        path.outline {
+            fill: none;
+            stroke: #5c5c5c;
+            stroke-width: 2;
+        }
+
+        path.sand {
+            fill: white;
+        }
+
+        path.mound {
+            fill: white;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <script>
+        // Set up SVG canvas dimensions
+        const width = 1000;
+        const height = 1000;
+        
+        const points = [
+            { x: 375, y: 605}
+            // Add more points as needed
+        ];
+
+        // Create SVG canvas
+        const svg = d3.select("body")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        // Draw baseball field grass using the new path
+        svg.append("path")
+            .attr("class", "grass")
+            .attr("d", 'M125.8 216.5c-9.2 0-15.7-7.8-15.8-7.9l-32.4-37.1L59 129.8l-18.1-16.9-1.4-4.4V107l.3-2.5.4-2.8.5-2.3 1.6-4.7.9-2.1 3-3.9.9-1.1S73.2 60 77.9 55.9c12.6-11.3 34.8-12.8 34.8-12.8H123.3l8.2 1.3 2.3.4 7.8 2.6 1.6.6L157 58l47 45.1 1.1 1.1s2.7 3.1 0 6.5-11.9 14.7-11.9 14.7l-23.1 43.3-32.5 42c-1.7 2-6 5.8-11.8 5.8z')
+            .attr("transform", "scale(3)");
+
+        // Draw baseball field outline using the provided path
+        svg.append("path")
+            .attr("class", "outline")
+            .attr("d", 'M125.8 222.5c-13.4 0-22-10.9-22-10.9L79.4 182 69 168.9l-16.7-34.3-18.5-17.2-2.4-7.7.1-3.3.4-3 .5-3.1.6-3 .9-2.7 1-2.8 1.1-2.6 1.3-2.5 1.3-2.5 1.7-2 1.9-1.9 1.9-1.9 1.9-1.9 1.9-1.9 1.9-1.9 1.9-1.9 2-2 2-2 2-2 2-2 2-2 2.1-2.1 2.1-2.1 2.1-2.1 2.2-2.2 2.2-2.2 2.3-2.1 2.5-1.5 2.5-1.5 2.6-1.5 2.6-1.6 2.6-1.6 2.6-1.6 2.8-.9 2.8-.9 2.9-.8 2.9-.7 2.9-.7 2.9-.6 2.9-.5 2.9-.4h12l3 .5 2.9.5 2.9.5 2.9.5 2.9.9 2.8.9 2.8.9 2.8 1.1 2.6 1.9 2.6 1.9 2.5 1.8 2.5 1.8 2.5 1.8 2.4 1.7 2.3 2.2 2.2 2.2 2.2 2.1 2.1 2.1 2.1 2.1 2 2 2 2 2 2 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.7 1.4 2.1 1.3 2 .9 2.4.9 2.4.4 2.8-.7 4.3-21.8 21.8-24.5 43.3-24.9 32.4c.1.1-7.3 9.9-19.7 9.9z')
+            .attr("transform", "scale(3)");
+
+        svg.append("path")
+            .attr("class","sand")
+            .attr("d","M163 165.8c-.2.2-6-28.1-37.1-28.1-33.4 0-39 25.5-39.5 28.1l-.4.4 14.8 14.8.7-.7 18.2 17.9c-.7 1-1.1 2.2-1.1 3.6 0 1.2.4 2.4 1 3.4v.1c1.1 1.8 3.1 3 5.4 3 3.5 0 6.4-2.9 6.4-6.4 0-1.5-.5-2.8-1.3-3.9l18.7-17.7 1.5.5 13.5-13.5-.8-1.5zm-34.4 30.9c-1-.7-2.3-1.2-3.7-1.2-1.5 0-2.8.5-3.9 1.3l-17.6-18.2s6.2-5.6 2.7-10.2l17.4-14.5c.5-.3 1.1-.4 1.8-.4.9 0 1.7.5 2.3 1.1 0 0 .1 0 .1.1l16.2 15.5c-.5 1 .1 6.3 3 8.9l-18.3 17.6z")
+            .attr("transform","scale(3)")
+
+        svg.append("path")
+            .attr("class","mound")
+            .attr("d", "M122.5 174.7c-1.5 1.5-1.5 3.9 0 5.4s3.9 1.5 5.4 0c1.5-1.5 1.5-3.9 0-5.4-1.4-1.5-3.9-1.5-5.4 0z")
+            .attr("transform","scale(3)")
+
+        // svg.selectAll("circle")
+        //         .data(points)
+        //         .enter()
+        //         .append("circle")
+        //         .attr("cx", d => d.x) // multiplying by 2 to account for the scale of the paths
+        //         .attr("cy", d => d.y)
+        //         .attr("r", 2) // radius of the circle
+        //         .attr("fill", "black") // color of the circle
+
+        
+        // d3.csv("../data/aj_final.csv").then(function(data) {
+        //     svg.selectAll("circle")
+        //         .data(data)
+        //         .enter()
+        //         .append("circle")
+        //         .attr("cx", d => +d.hc_x_ /2.495671 + 125) // multiplying by 2 to account for the scale of the paths
+        //         .attr("cy", d => 199 - +d.hc_y_ / 2.495671)
+        //         .attr("r", 1) // radius of the circle
+        //         .attr("fill", "black") // color of the circle
+        //         .attr("transform","scale(3)")
+        // })
+        
+        d3.csv("../data/aj_final.csv").then(function(data) {
+
+            let lineGenerator = d3.line()
+                .x(d => d.x)
+                .y(d => d.y);
+
+            data.forEach(function(row) {
+                let endPointX = +row.hc_x_ / 2.495671 + 125;
+                let endPointY = 199 - (+row.hc_y_ / 2.495671);
+                let line_points = [
+                    { x: 125, y: 200},
+                    { x: endPointX, y: endPointY}
+                ];
+
+                svg.append("path")
+                    .datum(line_points)
+                    .attr("fill","none")
+                    .attr("stroke", "grey")
+                    .attr("stroke-width", 1)
+                    .attr("d", lineGenerator)
+                    .attr("transform","scale(3)")
+                    .attr("stroke-opacity", .4)
+                    .attr("stroke-dasharray", function() {
+                        let totalLength = this.getTotalLength();
+                        return totalLength + " " + totalLength;
+                })
+                    .attr("stroke-dashoffset", function() {
+                        let totalLength = this.getTotalLength();
+                        return totalLength;
+                })
+                .transition()
+                .duration(4000)
+                .attr("stroke-dashoffset",0);
+            });
+        });
+
+
+
+        // const origin = { x: 125, y: 200};
+        
+        // // Setup the SVG
+        // function drawHitLine(distance, angle) {
+
+        //     angle = (angle*-1 - 270) 
+        //     // Convert polar coordinates (distance and angle) to Cartesian coordinates
+        //     const endX = origin.x + (distance/3) * Math.cos(angle * (Math.PI / 180));
+        //     const endY = origin.y - (distance/3) * Math.sin(angle * (Math.PI / 180)); // Subtracting since SVG y-coordinates are top-down
+
+        //     // Draw the line
+        //     svg.append("line")
+        //         .attr("x1", origin.x)
+        //         .attr("y1", origin.y)
+        //         .attr("x2", endX)
+        //         .attr("y2", endY)
+        //         .attr("stroke", "black")
+        //         .attr("stroke-width", 2)
+        //         .attr("transform","scale(3)");
+        // }
+
+        // // Test the function with a distance of 400 and an angle of 45 degrees
+
+        // d3.csv("../data/aj_final.csv").then(function(data) {
+        //     data.forEach(function(row) {
+        //         const distance = row.hit_distance_sc;
+        //         const angle = row.spray_angle_true;
+        //         drawHitLine(distance, angle)
+        //     })
+
+
+        // })
+    
+            </script>
+
+</body>
+
+</html>

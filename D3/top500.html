@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Top 500 True Home Run Seasons</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+</head>
+
+<style>
+    body {
+        background-color: rgba(0, 1, 2, 0.4);
+    }
+</style>
+
+<body>
+
+    <script>
+        margin = {top: 80, right: 100, bottom: 60, left: 100};
+        const width = 960 - margin.left - margin.right;
+        const height = 550 - margin.top - margin.bottom;
+
+        const svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class","graph-svg-component")
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        function jitter(range) {
+            return Math.random() * range - range / 2;
+        }
+
+        d3.csv("../data/top500.csv").then(function(data) {
+
+            let sortedData = data.sort((a, b) => b.True_HR - a.True_HR);
+
+            let xScale = d3.scaleLinear()
+                .domain([23, d3.max(data, d => +d.home_runs)])
+                .range([0, width]);
+
+            let yScale = d3.scaleLinear()
+                .domain([0, d3.max(data, d => +d.True_HR)])
+                .range([height, 0]);
+
+            svg.selectAll("circle")
+                .data(sortedData.slice(5))
+                .enter()
+                .append("circle")
+                .attr("cx", d=> xScale(+d.home_runs) + jitter(15))
+                .attr("cy", d=> yScale(+d.True_HR) + jitter(15))
+                .attr("r",5)
+                .attr("stroke","rgb(0,51,142,.85)")
+                .attr("stroke-width",2)
+                .attr("fill","transparent");
+
+            let top6 = sortedData.slice(1, 5);
+
+            svg.selectAll("circle.top6")
+                .data(top6)
+                .enter()
+                .append("circle")
+                .attr("cx", d=> xScale(+d.home_runs))
+                .attr("cy", d=> yScale(+d.True_HR))
+                .attr("r",5)
+                .attr("stroke","rgb(0,51,142,.85)")
+                .attr("stroke-width",2)
+                .attr("fill","transparent");
+
+
+            svg.selectAll("text.annotation")
+                .data(top6)
+                .enter().append("text")
+                .attr("class", "annotation")
+                .attr("x", d => xScale(d.home_runs) + 40)
+                .attr("y", d => yScale(d.True_HR) - 10) // A little above the point
+                .text(d => `${d.PLAYERNAME}, ${d.game_year}`) // Assuming the columns are named 'column1' and 'column2'
+                .attr("text-anchor", "middle")
+                .attr("font-size", "10px")
+                .attr("fill", "black");
+            
+            let top1 = svg.selectAll("circle.top1")
+                .data([sortedData[0]])
+                .enter()
+                .append("circle")
+                .attr("cx", d=> xScale(+d.home_runs))
+                .attr("cy", d=> yScale(+d.True_HR))
+                .attr("r", 5)
+                .attr("opacity", 0); // Start as in
+
+            top1.transition()
+                .delay(5000)  // Delay for 3 seconds
+                .attr("r",5)
+                .attr("stroke","rgb(21,128,121)")
+                .attr("stroke-width",2)
+                .attr("fill","transparent")
+                .attr("opacity",1);
+
+            let top1text = svg.selectAll("text.annotation.top1")
+                .data([sortedData[0]])
+                .enter().append("text")
+                .attr("class", "annotation")
+                .attr("x", d => xScale(d.home_runs) + 40)
+                .attr("y", d => yScale(d.True_HR) - 10) // A little above the point
+                .text(d => `${d.PLAYERNAME}, ${d.game_year}`) // Assuming the columns are named 'column1' and 'column2'
+                .attr("text-anchor", "middle")
+                .attr("font-size", "10px")
+                .attr("fill", "black")
+                .attr("opacity",0);
+
+            top1text.transition()
+                .delay(6000)
+                .attr("opacity",1)
+            
+            
+            svg.append("g")
+                .call(d3.axisLeft(yScale).ticks(null, "s"));
+
+            svg.append("g")
+                .attr("class","axis")
+                .attr("transform",`translate(0, ${height})`)
+                .call(d3.axisBottom(xScale))
+
+            svg.append("text")
+                .attr("x",(width-60)/2)
+                .attr("y",-20)
+                .attr("text-anchor","middle")
+                .style("font-size","20px")
+                .style("font-family","Roboto")
+                .text("Top 500 Seasons since 2015");
+            
+            svg.append("text")
+                .attr("x",(width-60)/2)
+                .attr("y",450)
+                .attr("text-anchor","middle")
+                .style("font-size","15px")
+                .style("font-family","Roboto")
+                .text("Total Home Runs");
+
+            svg.append("text")
+                .attr("x",-(height-margin.top)/2)
+                .attr("y",-margin.left/2)
+                .attr("text-anchor","end")
+                .attr("transform", "rotate(-90)")
+                .style("font-size","15px")
+                .style("font-family","Roboto")
+                .text("True Home Runs");
+            
+
+        });
+
+    </script>
+
+</body>

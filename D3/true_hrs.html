@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>True Home Runs</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Avenir:wght@400;700&display=swap" rel="stylesheet">
+
+</head>
+
+<style>
+    body {
+        background-color: rgb(0, 28, 67,.3);
+    }
+
+    @font-face {
+        font-family: 'OffBit';
+        src: url('fonts/offbit/TTF/OffBit-DotBold.ttf') format('truetype');
+        /* Add other font styles if available */
+    }
+
+    @font-face {
+        font-family: 'Offbit-Other';
+        src: url('fonts/offbit/TTF/OffBit-101.ttf') format('truetype');
+    }
+
+</style>
+
+<body>
+
+    <script>
+
+        const margin = {top: 80, right: 60, bottom: 60, left: 40};
+        const width = 960 - margin.left - margin.right;
+        const height = 550 - margin.top - margin.bottom;
+
+        const svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class","graph-svg-component")
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        d3.csv("../data/top15.csv").then(function(data) {
+            const x0 = d3.scaleBand()
+                .domain(data.map(d => d.PLAYERNAME))
+                .rangeRound([0, width])
+                .paddingInner(0.1);
+
+            const x1 = d3.scaleBand()
+                .domain(['home_runs', 'True_HR'])
+                .rangeRound([0, x0.bandwidth()])
+                .padding(0.05);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(data, d => Math.max(+d.home_runs, +d.True_HR))])
+                .nice()
+                .rangeRound([height, 0]);
+
+            const strokeWidth = 3;
+
+            svg.append("g")
+                .selectAll("g")
+                .data(data)
+                .enter().append("g")
+                .attr("transform", d => `translate(${x0(d.PLAYERNAME)},0)`)
+                .selectAll("rect")
+                .data(function(d) {
+                        return [
+                            { key: 'home_runs', value: d.home_runs },
+                            { key: 'True_HR', value: d.True_HR }
+                        ];
+                    })
+                .enter().append("rect")
+                .attr("x", d => x1(d.key) + strokeWidth / 2)
+                .attr("y", d => height - strokeWidth / 2)
+                .attr("width", x1.bandwidth() - strokeWidth)
+                .attr("height", d => 0)
+                .attr("fill", (d, i) => i === 0 ? "rgb(0,51,142,.3)" : "rgb(232,0,47,.3)") // two different colors for two bars
+                .attr("stroke", (d, i) => i === 0 ? "rgb(0,51,142,.8)" : "rgb(232,0,47,.8)") // two different colors for two bars
+                .attr("stroke-width",strokeWidth)
+                .transition()
+                .delay((d, i, nodes) => {
+                    let groupNode = d3.select(nodes[i].parentNode);
+                    let allGroups = groupNode._groups[0][0].parentNode.childNodes;
+                    let nodeIndex = Array.prototype.indexOf.call(allGroups, groupNode.node());
+
+                    // Check if it's the first player's bars
+                    if (nodeIndex === 0) {
+                        return 5000;  // Delay for 5 seconds for both bars
+                    } else {
+                        return 0;  // No delay for other players
+                    }
+                })
+
+                .duration(3000)
+                .attr("y", d => y(d.value) - strokeWidth /2)
+                .attr("height", d => height - y(d.value));
+            
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x0))
+                .selectAll("text")
+                .style("text-anchor","end")
+                .attr("dx","-.6em")
+                .attr("dy",".15em")
+                .attr("transform","rotate(-30)")
+                .style("font-family","Roboto");
+
+            svg.append("g")
+                .attr("class", "axis")
+                .call(d3.axisLeft(y).ticks(null, "s"));
+
+            svg.append("g")
+                .selectAll("g")
+                .data(data)
+                .enter().append("g")
+                .attr("transform", d => `translate(${x0(d.PLAYERNAME)},0)`)
+                .selectAll("text")
+                .data(function(d) {
+                    return [
+                        { key: 'home_runs', value: d.home_runs },
+                        { key: 'True_HR', value: d.True_HR }
+                    ];
+                })
+                .enter().append("text")
+                .attr("x", d => x1(d.key) + x1.bandwidth() / 2)  // Center the text over each bar
+                .attr("y", d => y(d.value) - 5)  // 5 units above the top of the bar
+                .attr("text-anchor", "middle")  // Center the text
+                .style("font-family","Roboto")
+                .style("font-size","12px")
+                .text(d => d.value)
+                .attr("opacity",0)
+                .transition()
+                .delay((d, i, nodes) => {
+                    let groupNode = d3.select(nodes[i].parentNode);
+                    let allGroups = groupNode._groups[0][0].parentNode.childNodes;
+                    let nodeIndex = Array.prototype.indexOf.call(allGroups, groupNode.node());
+
+                    // Check if it's the first player's bars
+                    if (nodeIndex === 0) {
+                        return 8000;  // Delay for 5 seconds for both bars
+                    } else {
+                        return 4000;  // No delay for other players
+                    }
+                })
+                .duration(1000)
+                .attr("opacity", 1); 
+
+                svg.append("text")
+                    .attr("x",(width-60)/2)
+                    .attr("y",-20)
+                    .attr("text-anchor","middle")
+                    .style("font-size","30px")
+                    .style("font-family","Offbit")
+                    .text("2022 Home Run Leaders");
+
+                // ... Your previous D3 code ...
+
+                // Legend Data
+                const legendData = [
+                    { label: 'Total Home Runs', color: "rgb(0,51,142,.3)" },
+                    { label: 'True Home Runs', color: "rgb(232,0,47,.3)" }
+                ];
+
+                // Position and size
+                const legendRectSize = 18;
+                const legendSpacing = 4;
+                const legendX = width - 100;  // adjust as needed
+                const legendY = 10;           // starting Y position
+
+                // Append legend group
+                const legend = svg.selectAll('.legend')
+                    .data(legendData)
+                    .enter()
+                    .append('g')
+                    .attr('class', 'legend')
+                    .attr('transform', function(d, i) {
+                        const height = legendRectSize + legendSpacing;
+                        const offset = height * legendData.length / 2;
+                        const horz = legendX;
+                        const vert = i * height + legendY;
+                        return 'translate(' + horz + ',' + vert + ')';
+                    });
+
+                // Append colored rectangles
+                legend.append('rect')
+                    .attr('width', legendRectSize)
+                    .attr('height', legendRectSize)
+                    .style('fill', d => d.color)
+                    .style('stroke', d => d.color);
+
+                                // Append text labels
+                legend.append('text')
+                    .attr('x', legendRectSize + legendSpacing)
+                    .attr('y', legendRectSize - legendSpacing)
+                    .style("font-family", "Avenir") // if you want to use the same font for legend text
+                    .text(d => d.label);
+
+
+            });
+
+
+
+        </script>
+    
+    </body>
+
+</html>

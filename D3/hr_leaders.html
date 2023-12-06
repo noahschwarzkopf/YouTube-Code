@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Top 500 True Home Run Seasons</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+</head>
+
+<style>
+    body {
+        background-color: rgba(0, 1, 2, 0.4);
+    }
+</style>
+
+<body>
+
+    <script>
+        margin = {top: 80, right: 100, bottom: 60, left: 100};
+        const width = 1200 - margin.left - margin.right;
+        const height = 650 - margin.top - margin.bottom;
+
+        const svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class","graph-svg-component")
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            d3.csv("../data/hr_stad.csv").then(function(data) {
+            const x = d3.scaleLinear()
+                .domain([d3.min(data, d => +d.HR_Count - 62), d3.max(data, d => +d.HR_Count - 62)])
+                .nice()
+                .rangeRound([height, 0]);
+
+            const y = d3.scaleLinear()
+                .domain([d3.min(data, d => +d.HR_Count - 62), d3.max(data, d => +d.HR_Count - 62)])
+                .nice()
+                .rangeRound([height, 0]);
+            
+            });
+
+    </script>
+</body>
