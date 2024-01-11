@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Baseball Home Run Counts</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            background-color: rgba(0, 0, 0, 0.1); /* Background color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .graph-svg-component {
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        .axis path,
+        .axis line {
+            stroke: rgb(0, 0, 0);
+            opacity: 0.7;
+        }
+        .axis text {
+            fill: rgb(0, 0, 0);
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+
+        .title {
+            font-size: 30px; /* Increased font size */
+            text-anchor: middle;
+            fill: rgb(4, 4, 4);
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold; /* Bold font */
+            opacity: .6;
+        }
+
+        .note {
+            font-size: 14px; /* Increased font size */
+            text-anchor: middle;
+            fill: rgb(4, 4, 4);
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold; /* Bold font */
+            opacity: .6;
+        }
+    </style>
+</head>
+<body>
+    <svg width="1920" height="1080" class="graph-svg-component"></svg>
+    <script>
+        const svg = d3.select("svg"),
+              margin = {top: 20, right: 20, bottom: 30, left: 40},
+              width = +svg.attr("width") - margin.left - margin.right,
+              height = +svg.attr("height") - margin.top - margin.bottom,
+              g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+        function jitter(range) {
+            return Math.random() * range - range / 2;
+        }
+
+        const x = d3.scaleLinear().range([0, width]);
+        const y = d3.scaleLinear().range([height, 80]);
+
+        d3.csv("../data/poop.csv").then(function(data) {
+            // Prepare data
+            var scatterData = [];
+            data.forEach(function(d) {
+                var count = +d.Count;
+                var value = +d.Value;
+                var deviationRange = (1 - value / 62) * 1; // Convergence towards 0.4 - 0.6
+                for (var i = 0; i < count; i++) {
+                    var randomDeviation = (Math.random() - 0.5) * deviationRange;
+                    scatterData.push({
+                        Value: value, 
+                        RandomY: .5 + randomDeviation
+                    });
+                }
+            });
+            scatterData.sort((a, b) => a.Value - b.Value);
+
+            // Set domains
+            x.domain([0, 65]);
+            y.domain([0, 1]);
+            
+            scatterData.forEach((d, index) => {
+                setTimeout(() => {
+                    g.append("circle")
+                        .attr("class", "dot")
+                        .attr("cx", x(d.Value)+ jitter(15))
+                        .attr("cy", y(d.RandomY))
+                        .attr("r", d.Value === 62 ? 8 : 3.5)
+                        .attr("stroke", d.Value === 62 ? "red" : "steelblue")
+                        .attr("stroke-width", d.Value === 62 ? 4 : 1)
+                        .attr("fill", d.Value === 62 ? "transparent" : "transparent");
+                }, index * .0001);
+                 // Adjust timing as needed
+            });
+
+            // Add the X Axis
+            g.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x));
+
+        });
+
+        svg.append("text")
+            .attr("class", "title")
+            .attr("x",(width/2))
+            .attr("y",margin.top + 60/2)
+            .attr("text-anchor", "middle")
+            .style("font-size", "24px")
+            .style("font-family", "Roboto, sans-serif")
+            .style("font-weight", "bold")
+            .text("All 75,000 Non-Steroid Player-Seasons in History");
+
+        svg.append("text")
+            .attr("class", "note")
+            .attr("x",(width/2))
+            .attr("y",(margin.top/2)+ 60)
+            .attr("text-anchor", "middle")
+            .style("font-size", "12px")
+            .style("font-family", "Roboto, sans-serif")
+            .style("font-weight", "bold")
+            .text("NOTE: Estimation of actual data");
+
+        svg.append("text")
+            .attr("class", "anno")
+            .attr("x",width-5)
+            .attr("y",(margin.top/2) + 545)
+            .attr("text-anchor", "middle")
+            .style("font-size", "12px")
+            .style("font-family", "Roboto, sans-serif")
+            .style("font-weight", "bold")
+            .text("Aaron Judge, 2022")
+            .style("opacity",0)
+            .transition()
+            .delay(5000)  // Delay for 3 seconds
+            .duration(1000)
+            .style("opacity",.8);
+
+
+    </script>
+</body>
+</html>

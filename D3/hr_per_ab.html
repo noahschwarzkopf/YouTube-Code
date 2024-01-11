@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home Run Percentage by Player-Season</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<style>
+    body {
+        background-color: rgba(0, 0, 0, 0.1); /* Slightly different background color with low opacity */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .graph-svg-component {
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.1); /* Slightly different background color with low opacity */
+    }
+    .legend text {
+        fill: rgb(0, 0, 0);
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold; /* Bold font */
+        opacity: .7;
+    }
+    .axis path,
+    .axis line {
+        fill: rgb(0, 0, 0);
+        opacity: .7
+    }
+    .legend {
+        font-size: 13px;
+        cursor: pointer;
+        
+    }
+    .legend rect {
+        fill-opacity: 0.7;
+    }
+    
+    .aaron-judge {
+        fill: rgba(255, 0, 0, 0.7); /* Red with reduced opacity */
+    }
+    .steroid {
+        fill: rgba(0, 0, 139, 0.7); /* Dark blue with reduced opacity */
+    }
+    .other {
+        fill: rgb(123, 182, 179,.6); /* Light blue with reduced opacity */
+    }
+    .title {
+        font-size: 30px; /* Increased font size */
+        text-anchor: middle;
+        fill: rgb(0, 0, 0);
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold; /* Bold font */
+        opacity: .7;
+    }
+    .axis-label {
+        font-size: 20px;
+        fill: rgb(0, 0, 0);
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold;
+        opacity: .5;
+    }
+
+    .annotation {
+        font-size: 15px;
+        fill: rgb(0, 0, 0);
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold;
+        opacity: .5;
+    }
+
+    .highlighted {
+        stroke: rgb(240, 240, 237); /* Border color for highlighting */
+        stroke-width: 5px; /* Border width */
+    }
+
+
+</style>
+<body>
+    <svg width="1920" height="1080" class="graph-svg-component"></svg>
+    <script>
+        // Set the dimensions and margins of the graph
+        const margin = {top: 100, right: 150, bottom: 100, left: 150};
+        const width = 1920 - margin.left - margin.right;
+        const height = 1080 - margin.top - margin.bottom;
+
+        // Append the svg object to the body of the page
+        const svg = d3.select("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        // Read the data
+        d3.csv("/data/top500hr_steriods.csv").then(data => {
+            // Calculate HR % and sort by it
+            data.forEach(d => {
+                d.HR_Percent = Number(d.HR) / Number(d.AB);
+            });
+            data.sort((a, b) => b.HR_Percent - a.HR_Percent);
+
+            // Take the top 30
+            data = data.slice(0, 30);
+
+            // Add X axis
+            const x = d3.scaleBand()
+                .range([0, width])
+                .domain(data.map(d => d.Name + ' - ' + d.Season))
+                .padding(0.1);
+            svg.append("g")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x))
+                .style("opacity", 0.7)
+                .selectAll("text").remove(); // Remove the text labels
+
+            // Y axis
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.HR_Percent)])
+                .range([height, 0]);
+            svg.append("g")
+                .call(d3.axisLeft(y).tickFormat(d => `${(d * 100).toFixed(1)}%`))
+                .style("font-family", "'Roboto', sans-serif")
+                .style("font-weight", "bold")
+                .style("opacity", 0.6)
+                .style("font-size", "12px"); // Font size;
+
+            // Bars
+            svg.selectAll("myRect")
+                .data(data)
+                .join("rect")
+                .attr("x", d => x(d.Name + ' - ' + d.Season))
+                .attr("y", d => y(d.HR_Percent))
+                .attr("width", x.bandwidth())
+                .attr("height", d => height - y(d.HR_Percent))
+                .attr("class", d => {
+                    if (d.Name === "Aaron Judge" && d.Season === "2022") return "aaron-judge";
+                    if (d.steriod_flag === "Admitted or Implicated Use") return "steroid";
+                    return "other";
+                }).each(function(d) {
+                // Add annotations
+                svg.append("text")
+                    .attr("class", "annotation")
+                    .attr("x", x(d.Name + ' - ' + d.Season) + x.bandwidth() / 2)
+                    .attr("y", y(d.HR_Percent) - 5)
+                    .attr("text-anchor", "middle")
+                    .text(`${(d.HR_Percent * 100).toFixed(1)}%`);
+                });
+
+            function highlightBar(index) {
+                svg.selectAll("rect")
+                    .filter((d, i) => i === index)
+                    .classed("highlighted", true)
+                    .transition()
+                    .duration(1000)
+                    .on("end", () => {
+                        svg.selectAll("rect")
+                            .filter((d, i) => i === index)
+                            .classed("highlighted", false);
+                    });
+            }
+
+            const highlightSequence = [10, 8, 5, 0]; // Indices start from 0, so we subtract 1 from each
+            let currentIndex = 0;
+
+            function triggerHighlight() {
+                if (currentIndex < highlightSequence.length) {
+                    highlightBar(highlightSequence[currentIndex]);
+                    currentIndex++;
+                    // Extended delay before final highlight
+                    const delay = currentIndex === highlightSequence.length - 1 ? 3000 : 1500;
+                    setTimeout(triggerHighlight, delay);
+                }
+            }
+
+
+                // Start the highlight sequence after initial load
+                setTimeout(triggerHighlight, 500);
+
+            // Legend
+            const legendData = [
+                { class: 'aaron-judge', label: 'Aaron Judge 2022' },
+                { class: 'steroid', label: 'Implicated for Steroid Use' },
+                { class: 'other', label: 'No Suspicion of Steroid Use' }
+            ];
+
+            const legend = svg.append("g")
+              .attr("font-family", "Roboto")
+              .attr("font-size", 10)
+              .attr("text-anchor", "start")
+              .selectAll("g")
+              .data(legendData)
+              .enter().append("g")
+              .attr("class", "legend")
+              .attr("transform", (d, i) => `translate(0,${i * 20})`);
+
+            legend.append("rect")
+              .attr("x", 770)
+              .attr("width", 19)
+              .attr("height", 19)
+              .attr("class", d => d.class);
+
+            legend.append("text")
+              .attr("x", 800)
+              .attr("y", 9.5)
+              .attr("dy", "0.32em")
+              .text(d => d.label);
+
+            // Title
+            svg.append("text")
+                .attr("class", "title")
+                .attr("x", width / 2)
+                .attr("y", -10)
+                .text("Top 30 Home Run Percentages by Player-Season");
+
+            svg.append("text")
+                .attr("class", "axis-label")
+                .attr("x", width / 2)
+                .attr("y", height + 40)
+                .text("Player-Season");
+
+            // Add Y-axis label
+            svg.append("text")
+                .attr("class", "axis-label")
+                .attr("x", -height / 2)
+                .attr("y", -60)
+                .attr("transform", "rotate(-90)")
+                .text("Home Run Percentage");
+
+            // Pan Animation Setup
+            const initialView = [0, y(data[data.length - 1].HR_Percent), width, height];
+            const finalView = [0, y(data[0].HR_Percent) - height, width, height];
+
+            svg.attr("viewBox", initialView.join(" "));
+            
+            // Pan Animation
+            svg.transition()
+                .delay(3000) // Start after 3 seconds
+                .duration(10000) // for a 10-second animation
+                .ease(d3.easeLinear)
+                .attrTween("viewBox", function() {
+                    const i = d3.interpolateArray(initialView, finalView);
+                    return function(t) { return i(t).join(" "); };
+                });
+        });
+    </script>
+</body>
+</html>

@@ -10,22 +10,31 @@
 </head>
 
 <style>
+
     body {
-        background-color: rgba(0, 1, 2, 0.4);
+        background-color: rgba(0, 0, 0, 0.1); /* Slightly different background color with low opacity */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .graph-svg-component {
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.1); /* Slightly different background color with low opacity */
     }
 </style>
 
 <body>
-
+    <svg width="1920" height="1080" class="graph-svg-component"></svg>
     <script>
-        margin = {top: 80, right: 100, bottom: 60, left: 100};
-        const width = 960 - margin.left - margin.right;
-        const height = 550 - margin.top - margin.bottom;
+        // Set the dimensions and margins of the graph
+        const margin = {top: 100, right: 150, bottom: 100, left: 150};
+        const width = 1920 - margin.left - margin.right;
+        const height = 1080 - margin.top - margin.bottom;
 
-        const svg = d3.select("body").append("svg")
+        const svg = d3.select("svg")
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
-            .attr("class","graph-svg-component")
             .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -54,6 +63,7 @@
                 .attr("r",5)
                 .attr("stroke","rgb(0,51,142,.85)")
                 .attr("stroke-width",2)
+                .attr("opacity",.8)
                 .attr("fill","transparent");
 
             let top6 = sortedData.slice(1, 5);
@@ -67,6 +77,7 @@
                 .attr("r",5)
                 .attr("stroke","rgb(0,51,142,.85)")
                 .attr("stroke-width",2)
+                .attr("opacity",.8)
                 .attr("fill","transparent");
 
 
@@ -74,78 +85,101 @@
                 .data(top6)
                 .enter().append("text")
                 .attr("class", "annotation")
-                .attr("x", d => xScale(d.home_runs) + 40)
+                .attr("x", d => xScale(d.home_runs) + 10)
                 .attr("y", d => yScale(d.True_HR) - 10) // A little above the point
                 .text(d => `${d.PLAYERNAME}, ${d.game_year}`) // Assuming the columns are named 'column1' and 'column2'
-                .attr("text-anchor", "middle")
-                .attr("font-size", "10px")
+                .style("font-size","12px")
+                .style("font-family","Roboto")
+                .style("font-weight","bold")
+                .style("opacity",.6)
                 .attr("fill", "black");
             
             let top1 = svg.selectAll("circle.top1")
                 .data([sortedData[0]])
                 .enter()
                 .append("circle")
-                .attr("cx", d=> xScale(+d.home_runs))
-                .attr("cy", d=> yScale(+d.True_HR))
+                .attr("cx", 0)
+                .attr("cy", 880)
                 .attr("r", 5)
-                .attr("opacity", 0); // Start as in
+                .attr("stroke","rgb(21,128,121)")
+                .attr("stroke-width",4)
+                .attr("fill","transparent")
+                .attr("opacity",.8); // Start as in
 
             top1.transition()
                 .delay(5000)  // Delay for 3 seconds
-                .attr("r",5)
+                .duration(5000)
+                .attr("cx", d=> xScale(+d.home_runs))
+                .attr("cy", d=> yScale(+d.True_HR))
+                .attr("r",8)
                 .attr("stroke","rgb(21,128,121)")
-                .attr("stroke-width",2)
+                .attr("stroke-width",4)
                 .attr("fill","transparent")
-                .attr("opacity",1);
+                .attr("opacity",.8);
 
             let top1text = svg.selectAll("text.annotation.top1")
                 .data([sortedData[0]])
                 .enter().append("text")
                 .attr("class", "annotation")
-                .attr("x", d => xScale(d.home_runs) + 40)
+                .attr("x", d => xScale(d.home_runs) + 10)
                 .attr("y", d => yScale(d.True_HR) - 10) // A little above the point
                 .text(d => `${d.PLAYERNAME}, ${d.game_year}`) // Assuming the columns are named 'column1' and 'column2'
-                .attr("text-anchor", "middle")
-                .attr("font-size", "10px")
+                .style("font-size","15px")
+                .style("font-family","Roboto")
+                .style("font-weight","bold")
                 .attr("fill", "black")
                 .attr("opacity",0);
 
             top1text.transition()
-                .delay(6000)
-                .attr("opacity",1)
+                .delay(10000)
+                .attr("opacity",.6)
             
             
             svg.append("g")
+                .style("font-size","15px")
+                .style("font-family","Roboto")
+                .style("font-weight","bold")
+                .style("opacity",.6)
                 .call(d3.axisLeft(yScale).ticks(null, "s"));
 
             svg.append("g")
                 .attr("class","axis")
                 .attr("transform",`translate(0, ${height})`)
+                .style("font-size","15px")
+                .style("font-family","Roboto")
+                .style("font-weight","bold")
+                .style("opacity",.6)
                 .call(d3.axisBottom(xScale))
 
             svg.append("text")
                 .attr("x",(width-60)/2)
                 .attr("y",-20)
                 .attr("text-anchor","middle")
-                .style("font-size","20px")
+                .style("font-size","30px")
                 .style("font-family","Roboto")
+                .style("font-weight","bold")
+                .style("opacity",.6)
                 .text("Top 500 Seasons since 2015");
             
             svg.append("text")
                 .attr("x",(width-60)/2)
-                .attr("y",450)
+                .attr("y",925)
                 .attr("text-anchor","middle")
-                .style("font-size","15px")
+                .style("font-size","20px")
                 .style("font-family","Roboto")
+                .style("font-weight","bold")
+                .style("opacity",.6)
                 .text("Total Home Runs");
 
             svg.append("text")
                 .attr("x",-(height-margin.top)/2)
                 .attr("y",-margin.left/2)
-                .attr("text-anchor","end")
+                .attr("text-anchor","middle")
                 .attr("transform", "rotate(-90)")
-                .style("font-size","15px")
+                .style("font-size","20px")
                 .style("font-family","Roboto")
+                .style("font-weight","bold")
+                .style("opacity",.6)
                 .text("True Home Runs");
             
 

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Top 500 True Home Run Seasons</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+</head>
+
+<style>
+    body {
+        background-color: rgba(0, 0, 0, 0.1); /* Slightly different background color with low opacity */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .graph-svg-component {
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.1); /* Slightly different background color with low opacity */
+    }
+    .axis text,
+    .legend text {
+        fill: rgb(0, 0, 0);
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold; /* Bold font */
+        opacity: .7;
+    }
+    .axis path,
+    .axis line {
+        stroke: rgb(0, 0, 0);
+    }
+    .legend {
+        font-size: 13px;
+        cursor: pointer;
+        
+    }
+    .legend rect {
+        fill-opacity: 0.7;
+        
+    }
+    .title {
+        font-size: 30px; /* Increased font size */
+        text-anchor: middle;
+        fill: rgb(3, 3, 3);
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold; /* Bold font */
+        opacity: .6;
+    }
+    .axis {
+        font-size: 16px;
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold;
+        opacity: .6;
+    }
+
+    .annotation {
+        font-size: 12px;
+        fill: white;
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold;    }
+
+    .highlighted {
+        filter: url(#glow-effect);
+    }
+
+
+
+</style>
+<body>
+    <svg width="1920" height="1080" class="graph-svg-component">
+        <defs>
+            <filter id="glow-effect">
+                <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <!-- Rest of your SVG elements will be appended here -->
+    </svg>
+    <script>
+        // Set the dimensions and margins of the graph
+        const margin = {top: 100, right: 150, bottom: 100, left: 150};
+        const width = 1920 - margin.left - margin.right;
+        const height = 1080 - margin.top - margin.bottom;
+
+        const svg = d3.select("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        d3.csv("../data/hr_sched.csv").then(function(data) {
+            // The y-axis will be the team names
+            const y = d3.scaleBand()
+                .domain(data.map(d => d.Team))
+                .rangeRound([0, height])
+                .paddingInner(0.1);
+
+            // The x-axis will represent the HR counts
+            const x = d3.scaleLinear()
+                .domain([55, d3.max(data, d => +d.HR_Count)])
+                .rangeRound([0, width]);
+
+            const teamColors = {
+                "AZ": { color: "#A71930", name: "ARIZONA DIAMONDBACKS" },
+                "ATL": { color: "#CE1141", name: "ATLANTA BRAVES" },
+                "BAL": { color: "#DF4601", name: "BALTIMORE ORIOLES" },
+                "BOS": { color: "#BD3039", name: "BOSTON RED SOX" },
+                "CWS": { color: "#27251F", name: "CHICAGO WHITE SOX" },
+                "CHC": { color: "#0E3386", name: "CHICAGO CUBS" },
+                "CIN": { color: "#C6011F", name: "CINCINNATI REDS" },
+                "CLE": { color: "#0C2340", name: "CLEVELAND GUARDIANS" },
+                "COL": { color: "#33006F", name: "COLORADO ROCKIES" },
+                "DET": { color: "#0C2340", name: "DETROIT TIGERS" },
+                "HOU": { color: "#002D62", name: "HOUSTON ASTROS" },
+                "KC": { color: "#004687", name: "KANSAS CITY ROYALS" },
+                "LAA": { color: "#BA0021", name: "LOS ANGELES ANGELS" },
+                "LAD": { color: "#005A9C", name: "LOS ANGELES DODGERS" },
+                "MIA": { color: "#00A3E0", name: "MIAMI MARLINS" },
+                "MIL": { color: "#FFC52F", name: "MILWAUKEE BREWERS" },
+                "MIN": { color: "#002B5C", name: "MINNESOTA TWINS" },
+                "NYM": { color: "#FF5910", name: "NEW YORK METS" },
+                "NYY": { color: "#003087", name: "NEW YORK YANKEES" },
+                "OAK": { color: "#003831", name: "OAKLAND ATHLETICS" },
+                "PHI": { color: "#E81828", name: "PHILADELPHIA PHILLIES" },
+                "PIT": { color: "#FDB827", name: "PITTSBURGH PIRATES" },
+                "SD": { color: "#2F241D", name: "SAN DIEGO PADRES" },
+                "SF": { color: "#FD5A1E", name: "SAN FRANCISCO GIANTS" },
+                "SEA": { color: "#0C2C56", name: "SEATTLE MARINERS" },
+                "STL": { color: "#C41E3A", name: "ST. LOUIS CARDINALS" },
+                "TB": { color: "#092C5C", name: "TAMPA BAY RAYS" },
+                "TEX": { color: "#003278", name: "TEXAS RANGERS" },
+                "TOR": { color: "#134A8E", name: "TORONTO BLUE JAYS" },
+                "WSH": { color: "#AB0003", name: "WASHINGTON NATIONALS" }
+            };
+
+            // Create the horizontal bars
+            svg.selectAll(".bar")
+                .data(data)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("y", d => y(d.Team))
+                .attr("height", y.bandwidth())
+                .attr("x", 0)
+                .attr("width", 0)
+                .attr("fill", d => teamColors[d.Team].color)
+                .transition()
+                .delay(1000)
+                .duration(2000)
+                .attr("width", d => x(+d.HR_Count));
+      
+
+            svg.selectAll(".bar-text")
+                .data(data)
+                .enter().append("text")
+                .attr("class", "bar-text")
+                .attr("y", d => y(d.Team) + y.bandwidth() / 2)
+                .attr("x", d => x(d.HR_Count)/2) // Position the text a bit right from the start of the bar
+                .attr("dy", ".35em") // Vertically center the text within the bar
+                .text(d => teamColors[(d.Team)].name) 
+                .style("fill", "white") // Choose a text color that contrasts well with the bar colors
+                .style("font-family","Roboto")
+                .style("text-anchor","middle")
+                .style("font-weight","bold")
+                .style("opacity", .9)
+                .style("font-size", "23px")
+                .style("opacity", 0) // Start with text fully transparent
+                .transition() // Start a transition
+                .delay(3500)
+                .duration(1000) 
+                .style("opacity", 0.9); // End with text fully visible;
+
+
+            // Add the y-axis
+            svg.append("g")
+                .attr("class", "axis")
+                .call(d3.axisLeft(y))
+                .selectAll(".tick text").remove();
+
+            // svg.selectAll(".team-text")
+            //     .data(data)
+            //     .enter().append("text")
+            //     .attr("class", "team-text")
+            //     .attr("y", d => y(d.Team) + y.bandwidth() / 2)
+            //     .attr("dy", "0.35em") // Vertical alignment
+            //     .attr("x", -180) // Adjust this value to position the text
+            //     .text(d => d.Team)
+            //     .style("text-anchor", "end")
+            //     .style("alignment-baseline", "middle");
+
+            // Add the x-axis
+            svg.append("g")
+                .attr("class", "axis")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x));
+
+            svg.append("text")
+                .attr("class", "title")
+                .attr("x",(width-60)/2)
+                .attr("y",-20)
+                .text("Aaron Judge Home Runs by Team Schedule")
+
+            svg.append("text")
+                .attr("x",(width-60)/2)
+                .attr("y",925)
+                .attr("text-anchor","middle")
+                .style("font-size","20px")
+                .style("font-family","Roboto")
+                .style("font-weight","bold")
+                .style("opacity",.6)
+                .text("Total Home Runs");
+            
+            svg.selectAll(".annotation")
+                .data(data)
+                .enter().append("text")
+                .attr("class", "annotation")
+                .attr("x", d => x(+d.HR_Count) + 5)  // Position the annotation slightly right of the bar end
+                .attr("y", d => y(d.Team) + y.bandwidth() / 2)  // Center the annotation vertically in the bar
+                .attr("dy", ".35em")  // Vertically center the text
+                .text(d => +d.HR_Count)  // Display the HR count
+                .style("font-size", "20px")
+                // .style("fill", d => {
+                //         if (+d.HR_Count > 62) return "green";
+                //         else if (+d.HR_Count < 62) return "red";
+                //         else return "grey";})
+                .style("fill","grey")
+                .style("opacity",0)
+                .transition()
+                .delay(4000)
+                .duration(1000)
+                .style("opacity",1)
+            
+            svg.selectAll(".team-logo")
+                .data(data)
+                .enter().append("image")
+                .attr("class", "team-logo")
+                .attr("x", -36) // Adjust based on required positioning
+                .attr("y", d => y(d.Team) - 3) // Center the logo vertically in the band
+                .attr("width", 30)
+                .attr("height", 30)
+                .attr("xlink:href", d => `logos/${d.Team}.png`); // Ensure your data includes a field with the logo URL
+
+            function greyOutBars(originalColors, callback) {
+                svg.selectAll(".bar")
+                    .transition()
+                    .duration(2000) // Slow transition to grey
+                    .style("fill", "grey")
+                    .on("end", () => {
+                        callback(); // Call the next function once all bars are greyed out
+                    });
+            }
+
+            function highlightSequence(originalColors, sequence, callback) {
+                let index = 0;
+
+                function highlightNextBar() {
+                    if (index < sequence.length) {
+                        const barIndex = sequence[index];
+                        svg.selectAll(".bar")
+                            .transition()
+                            .duration(1000)
+                            .style("fill", (d, i) => i === barIndex ? originalColors[d.Team] : "grey");
+
+                        index++;
+                        setTimeout(highlightNextBar, 2000); // Wait for 2 seconds before highlighting the next bar
+                    } else {
+                        callback(); // Once done, call the final function to reset colors
+                    }
+                }
+
+                highlightNextBar();
+            }
+
+            function resetBarColors(originalColors) {
+                svg.selectAll(".bar")
+                    .transition()
+                    .duration(2000)
+                    .style("fill", d => originalColors[d.Team]);
+            }
+
+            const highlightSequenceArray = [9, 0, 29]; // Example sequence
+            const originalColors = data.reduce((acc, d) => {
+                acc[d.Team] = teamColors[d.Team].color;
+                return acc;
+            }, {});
+
+            // Start the process with an initial delay
+            setTimeout(() => {
+                greyOutBars(originalColors, () => {
+                    highlightSequence(originalColors, highlightSequenceArray, () => {
+                        resetBarColors(originalColors);
+                    });
+                });
+            }, 5000); // Initial delay of 5000 milliseconds
+
+            
+
+                                
+
+        });
+    </script>
+
+</body>

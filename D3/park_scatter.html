@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MLB Scatter Plot</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+<style>
+    body {
+        background-color: rgba(0, 0, 0, 0.1); /* Slightly different background color with low opacity */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .graph-svg-component {
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.1); /* Slightly different background color with low opacity */
+    }
+
+    .bold-text {
+        font-weight: bold
+    }
+
+    .title {
+        font-size: 30px; /* Increased font size */
+        fill: rgb(38, 37, 37);
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold; /* Bold font */
+        opacity: .7;
+    }
+    .axis-label {
+        font-size: 20px;
+        fill: rgb(38, 37, 37);
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold;
+        opacity: .5;
+    }
+
+    .axis text{
+        fill: rgb(38, 37, 37);
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold; /* Bold font */
+        opacity: .7;
+    }
+
+    .axis line,
+    .axis path {
+        stroke: rgb(38, 37, 37); /* Match the color of the labels and ticks */
+        stroke-opacity: 0.7; /* Set the opacity to 0.5 */
+    }
+
+</style>
+<body>
+    <script>
+        margin = {top: 100, right: 150, bottom: 100, left: 150};
+        const width = 1920 - margin.left - margin.right;
+        const height = 1080 - margin.top - margin.bottom;
+
+        const svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class","graph-svg-component")
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+
+        // Set up the scales
+        var xScale = d3.scaleLinear().range([0, width]);
+        var yScale = d3.scaleLinear().range([height, 0]);
+
+        // Define the axes
+        var xAxis = d3.axisBottom(xScale);
+        var yAxis = d3.axisLeft(yScale);
+
+        // Read in the data from the CSV file
+        d3.csv("/data/park_hrs.csv").then(function(data) {
+            // Process the data
+            data.forEach(function(d) {
+                d.total_pitches = +d.total_pitches;
+                d.home_runs = +d.home_runs;
+            });
+
+            // Sort data by home runs for the animation
+            const sortedData = data.sort((a, b) => a.home_runs - b.home_runs);
+
+            // Scale the range of the data
+            xScale.domain([1150, 1.05*d3.max(data, function(d) { return d.home_runs; })]);
+            yScale.domain([194000, d3.max(data, function(d) { return d.total_pitches; })]);
+
+            // Add the scatterplot images with animation
+            const totalDuration = 4000; // Total duration of the animation in milliseconds
+            const delay = (d, i) => (i / sortedData.length) * totalDuration;
+            svg.selectAll(".team-logo")
+                .data(sortedData)
+                .enter().append("image")
+                .attr("xlink:href", function(d) { return "/d3/logos/" + d.abb + ".png"; })
+                .attr("x", function(d) { return xScale(d.home_runs); })
+                .attr("y", function(d) { return yScale(d.total_pitches); })
+                .attr("width", 50)
+                .attr("height", 50)
+                .style("opacity", 0)
+                .transition()
+                .delay(delay)
+                .duration(500)
+                .style("opacity", 1);
+
+            // Add the X Axis
+            svg.append("g")
+                .attr("class", "axis text")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis);
+
+            // Add the Y Axis
+            svg.append("g")
+                .attr("class", "axis text")
+                .call(yAxis);
+            
+            // Main chart title
+            svg.append("text")
+                .attr("class", "title")
+                .attr("x", width / 2 )
+                .attr("y", 0 - (margin.top / 2))
+                .attr("text-anchor", "middle")
+                .style("text-decoration", "bold")
+                .text("Total Pitches and Home Runs by Stadium (2015-2023)");
+
+            // X-Axis title
+            svg.append("text")
+                .attr("class","axis-label")             
+                .attr("x", width / 2 )
+                .attr("y", 920 )
+                .style("text-anchor", "middle")
+                .text("Home Runs");
+
+            // Y-Axis title
+            svg.append("text")
+                .attr("class","axis-label")    
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x",0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .text("Total Pitches");
+            
+            svg.append("text")
+                .attr("class","axis-label")    
+                .attr("y", 940)
+                .attr("x", (width / 2))
+                .style("font-size", "13px")
+                .style("text-anchor", "middle")
+                .text("*Data is for regular season only. ATL, TEX, & TOR had multiple home stadiums played at during time period.");
+                
+        
+});
+
+</script>
+</body>
+</html>

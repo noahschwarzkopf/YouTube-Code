@@ -12,34 +12,74 @@
 
 <style>
     body {
-        background-color: rgb(0, 28, 67,.3);
+        background-color: rgba(0, 0, 0, 0.1); /* Slightly different background color with low opacity */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .graph-svg-component {
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.1); /* Slightly different background color with low opacity */
+    }
+    .axis text,
+    .legend text {
+        fill: rgb(0, 0, 0);
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold; /* Bold font */
+        opacity: .7;
+    }
+    .axis path,
+    .axis line {
+        stroke: rgb(0, 0, 0);
+    }
+    .legend {
+        font-size: 16px;
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .legend rect {
+        fill-opacity: 1;
+        
+    }
+    .title {
+        font-size: 30px; /* Increased font size */
+        text-anchor: middle;
+        fill: rgb(4, 4, 4);
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold; /* Bold font */
+        opacity: .6;
+    }
+    .axis {
+        font-size: 16px;
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold;
+        opacity: .6;
     }
 
-    @font-face {
-        font-family: 'OffBit';
-        src: url('fonts/offbit/TTF/OffBit-DotBold.ttf') format('truetype');
-        /* Add other font styles if available */
+    .annotation {
+        font-size: 12px;
+        fill: white;
+        font-family: 'Roboto', sans-serif;
+        font-weight: bold;
+        opacity: .5;
     }
 
-    @font-face {
-        font-family: 'Offbit-Other';
-        src: url('fonts/offbit/TTF/OffBit-101.ttf') format('truetype');
-    }
 
 </style>
-
 <body>
-
+    <svg width="1920" height="1080" class="graph-svg-component"></svg>
     <script>
+        // Set the dimensions and margins of the graph
+        const margin = {top: 100, right: 150, bottom: 100, left: 150};
+        const width = 1920 - margin.left - margin.right;
+        const height = 1080 - margin.top - margin.bottom;
 
-        const margin = {top: 80, right: 60, bottom: 60, left: 40};
-        const width = 960 - margin.left - margin.right;
-        const height = 550 - margin.top - margin.bottom;
-
-        const svg = d3.select("body").append("svg")
+        // Append the svg object to the body of the page
+        const svg = d3.select("svg")
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
-            .attr("class","graph-svg-component")
             .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -59,7 +99,7 @@
                 .nice()
                 .rangeRound([height, 0]);
 
-            const strokeWidth = 3;
+            const strokeWidth = 1;
 
             svg.append("g")
                 .selectAll("g")
@@ -78,8 +118,8 @@
                 .attr("y", d => height - strokeWidth / 2)
                 .attr("width", x1.bandwidth() - strokeWidth)
                 .attr("height", d => 0)
-                .attr("fill", (d, i) => i === 0 ? "rgb(0,51,142,.3)" : "rgb(232,0,47,.3)") // two different colors for two bars
-                .attr("stroke", (d, i) => i === 0 ? "rgb(0,51,142,.8)" : "rgb(232,0,47,.8)") // two different colors for two bars
+                .attr("fill", (d, i) => i === 0 ? "rgb(0,51,142,.6)" : "rgb(123, 182, 179,.6)") // two different colors for two bars
+                //.attr("stroke", (d, i) => i === 0 ? "rgb(0,51,142,.8)" : "rgb(123, 182, 179)") // two different colors for two bars
                 .attr("stroke-width",strokeWidth)
                 .transition()
                 .delay((d, i, nodes) => {
@@ -131,7 +171,8 @@
                 .attr("y", d => y(d.value) - 5)  // 5 units above the top of the bar
                 .attr("text-anchor", "middle")  // Center the text
                 .style("font-family","Roboto")
-                .style("font-size","12px")
+                .style("font-weight","bold")
+                .style("font-size","16px")
                 .text(d => d.value)
                 .attr("opacity",0)
                 .transition()
@@ -148,22 +189,33 @@
                     }
                 })
                 .duration(1000)
-                .attr("opacity", 1); 
+                .attr("opacity", .5); 
 
                 svg.append("text")
+                    .attr("class","title")
                     .attr("x",(width-60)/2)
                     .attr("y",-20)
                     .attr("text-anchor","middle")
                     .style("font-size","30px")
-                    .style("font-family","Offbit")
                     .text("2022 Home Run Leaders");
+
+                svg.append("text")
+                    .attr("x",-(height-margin.top)/2)
+                    .attr("y",-margin.left/2)
+                    .attr("text-anchor","end")
+                    .attr("transform", "rotate(-90)")
+                    .style("font-size","20px")
+                    .style("font-family","Roboto")
+                    .style("font-weight","bold")
+                    .style("opacity",.6)
+                    .text("Home Runs");
 
                 // ... Your previous D3 code ...
 
                 // Legend Data
                 const legendData = [
-                    { label: 'Total Home Runs', color: "rgb(0,51,142,.3)" },
-                    { label: 'True Home Runs', color: "rgb(232,0,47,.3)" }
+                    { label: 'Total Home Runs', color: "rgb(0,51,142,.6)" },
+                    { label: 'True Home Runs', color: "rgb(123, 182, 179,.6)" }
                 ];
 
                 // Position and size
@@ -195,10 +247,11 @@
 
                                 // Append text labels
                 legend.append('text')
+                    .attr("class","labels")
                     .attr('x', legendRectSize + legendSpacing)
                     .attr('y', legendRectSize - legendSpacing)
-                    .style("font-family", "Avenir") // if you want to use the same font for legend text
                     .text(d => d.label);
+
 
 
             });

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Top 500 True Home Run Seasons</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<style>
+    body {
+        background-color: rgba(0, 0, 0, 0.1); /* Slightly different background color with low opacity */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .graph-svg-component {
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.1); /* Slightly different background color with low opacity */
+    }
+
+    .bold-text {
+        font-weight: bold
+    }
+
+
+</style>
+<body>
+    <script>
+        margin = {top: 100, right: 150, bottom: 100, left: 150};
+        const width = 1920 - margin.left - margin.right;
+        const height = 1080 - margin.top - margin.bottom;
+
+        const svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .attr("class","graph-svg-component")
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+
+        d3.csv("../data/top500hr_steriods.csv").then(function(data) {
+            let xScale = d3.scaleLinear()
+                .domain([d3.min(data, d => +d.AB), d3.max(data, d => +d.AB)])
+                .range([0, width]);
+
+            let yScale = d3.scaleLinear()
+                .domain([d3.min(data, d => +d.HR), d3.max(data, d => +d.HR)])
+                .range([height, 0]);
+
+                let circles = svg.selectAll("circle")
+                    .data(data)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", d => xScale(+d.AB))
+                    .attr("cy", d => yScale(+d.HR))
+                    .attr("r", 5)
+                    .attr("fill", "grey"); // Initial color setup
+
+                    setTimeout(() => {
+                        circles.filter(d => d.HR >= 60)
+                            .attr("fill", d => {
+                                if (d.HR === 62 || (d.Name === "Aaron Judge" && d.Season === "2022")) return "rgba(255, 0, 0, 0.5)";
+                                return "rgba(0, 0, 255, 0.5)";
+                            });
+
+                svg.selectAll("text.annotation")
+                    .data(data.filter(d => d.HR >= 60))
+                    .enter().append("text")
+                    .attr("class", "annotation")
+                    .attr("x", d => xScale(d.AB) + 10)
+                    .attr("y", d => yScale(d.HR)) 
+                    .text(d => `${d.Name}, ${d.Season}`) 
+                    .attr("text-anchor", "start")
+                    .attr("font-size", "12px")
+                    .attr("font-family", "Roboto") // Apply Roboto font
+                    .attr("font-weight", "bold") // Make font bold
+                    .attr("fill", "black")
+                    .attr("opacity", 0)
+                    .transition()
+                    .duration(1000)
+                    .attr("opacity", 1);
+
+                setTimeout(() => {
+                    circles.filter(d => d.HR >= 60 && d.HR != 60 && d.HR != 61 && d.HR != 62)
+                        .attr("fill", "grey");
+                    circles.filter(d => d.HR === 62)
+                        .attr("fill", "red")
+                        .transition(); // Keep the HR = 62 dot red
+
+                    svg.selectAll("text.annotation")
+                        .filter(d => d.HR != 60 && d.HR != 61 && d.HR != 62)
+                        .transition()
+                        .duration(1000)
+                        .attr("opacity", 0)
+                        .remove();
+                }, 5000);
+            }, 5000);
+
+            svg.append("g")
+                .call(d3.axisLeft(yScale));
+
+            svg.append("g")
+                .attr("class","axis")
+                .attr("transform",`translate(0, ${height})`)
+                .call(d3.axisBottom(xScale));
+
+             // Bold Title
+            svg.append("text")
+                .attr("class", "bold-text")
+                .attr("x",(width-60)/2)
+                .attr("y",-40)
+                .attr("text-anchor","middle")
+                .style("font-size","30px")
+                .style("font-family","Roboto")
+                .text("Top 500 Home Run Seasons");
+
+            // Bold X-axis Title
+            svg.append("text")
+                .attr("class", "bold-text")
+                .attr("x",(width-60)/2)
+                .attr("y",height + 40)
+                .attr("text-anchor","middle")
+                .style("font-size","15px")
+                .style("font-family","Roboto")
+                .text("At Bats");
+
+            // Horizontal Y-axis Title
+            svg.append("text")
+                .attr("class", "bold-text")
+                .attr("x", -120)
+                .attr("y", 400)
+                .attr("text-anchor","start")
+                .style("font-size","15px")
+                .style("font-family","Roboto")
+                .text("Home Runs");
+
+
+            
+        });
+    </script>
+</body>
+</html>
