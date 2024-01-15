@@ -27,6 +27,11 @@
 </style>
 <body>
     <script>
+        if (document.URL.includes('d3-video-recording')) {
+            window.currentTime = 0;
+            performance.now = () => currentTime;
+        }
+
         margin = {top: 100, right: 150, bottom: 100, left: 150};
         const width = 1920 - margin.left - margin.right;
         const height = 1080 - margin.top - margin.bottom;
@@ -48,21 +53,22 @@
                 .domain([d3.min(data, d => +d.HR), d3.max(data, d => +d.HR)])
                 .range([height, 0]);
 
-                let circles = svg.selectAll("circle")
-                    .data(data)
-                    .enter()
-                    .append("circle")
-                    .attr("cx", d => xScale(+d.AB))
-                    .attr("cy", d => yScale(+d.HR))
-                    .attr("r", 5)
-                    .attr("fill", "grey"); // Initial color setup
+            let circles = svg.selectAll("circle")
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("cx", d => xScale(+d.AB))
+                .attr("cy", d => yScale(+d.HR))
+                .attr("r", 5)
+                .attr("fill", "grey"); // Initial color setup
 
-                    setTimeout(() => {
-                        circles.filter(d => d.HR >= 60)
-                            .attr("fill", d => {
-                                if (d.HR === 62 || (d.Name === "Aaron Judge" && d.Season === "2022")) return "rgba(255, 0, 0, 0.5)";
-                                return "rgba(0, 0, 255, 0.5)";
-                            });
+                setTimeout(() => {
+                    circles.filter(d => d.HR >= 60)
+                        .attr("fill", d => {
+                            if (d.HR === 62 || (d.Name === "Aaron Judge" && d.Season === "2022")) return "rgba(255, 0, 0, 0.5)";
+                            return "rgba(0, 0, 255, 0.5)";
+                        });
+            
 
                 svg.selectAll("text.annotation")
                     .data(data.filter(d => d.HR >= 60))
@@ -96,6 +102,7 @@
                         .remove();
                 }, 5000);
             }, 5000);
+            
 
             svg.append("g")
                 .call(d3.axisLeft(yScale));
